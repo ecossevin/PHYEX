@@ -1,21 +1,21 @@
-  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM,ZLM_CLOUD, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, ZLM, PZZ, ZETHETA, ZSHEAR, KRRI, IIJE, ZD,  &
-  & ZEMOIST, CST, CSTURB, ZCOEF_AMPL, PTHVREF, ZDRTDZ, ZDTHLDZ, OOCEAN, IKT, IKU, ZPENTE, PTHLT, ZWORK2, GOCEAN, ZTHLM, ZRM, JK,  &
-  & IKTE, ZLOCPEXNM, OCOMPUTE_SRC, PSRCT, PCOEF_AMPL_SAT, IKE, JIJ, ZAMOIST, IKA, ZCOEF_AMPL_CEI_NUL, ZALPHA, PDIRCOSZW, ZWORK1,  &
-  & IKTB, PCEI, IKL, TURBN, PCEI_MIN, PDXX, ZVAR, IIJB, O2D, HTURBLEN_CL, PDYY, ZHOOK_HANDLE2, KRR, ZWORK2D, IKB, PCEI_MAX,  &
-  & ZATHETA)
+  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, PLM, PZZ, PETHETA, PSHEAR, KRRI, ZD, &
+  & PEMOIST, CST, CSTURB, PCOEF_AMPL, PTHVREF, PDRTDZ, PDTHLDZ, OOCEAN, PTHLT, PWORK2, GOCEAN, PTHLM, PRM, &
+  & LOCPEXNM, OCOMPUTE_SRC, PSRCT, PCOEF_AMPL_SAT, PAMOIST, PALPHA, PDIRCOSZW, ZWORK1, &
+  & PCEI, TURBN, PCEI_MIN, PDXX, PVAR, O2D, HTURBLEN_CL, PDYY, KRR, PWORK2D, PCEI_MAX, &
+  & PATHETA)
     !     #########################
     !!
     !!*****CLOUD_MODIF_LM routine to:
     !!       1/ change the mixing length in the clouds
     !!       2/ emphasize the mixing length in the cloud
-    !!           by the coefficient ZCOEF_AMPL calculated here
+    !!           by the coefficient PCOEF_AMPL calculated here
     !!             when the CEI index is above ZCEI_MIN.
     !!
     !!
-    !!      ZCOEF_AMPL ^
+    !!      PCOEF_AMPL ^
     !!                 |
     !!                 |
-    !!  ZCOEF_AMPL_SAT -                       ---------- Saturation
+    !!  PCOEF_AMPL_SAT -                       ---------- Saturation
     !!    (XDUMMY1)    |                      -
     !!                 |                     -
     !!                 |                    -
@@ -67,66 +67,67 @@
     !
     TYPE(DIMPHYEX_t), INTENT(IN) :: D
   LOGICAL, INTENT(IN) :: OCLOUDMODIFLM  
-    REAL, INTENT(INOUT) :: ZLM_CLOUD(D%NIJT, D%NKT)
     TYPE(TFILEDATA), INTENT(INOUT) :: TPFILE
     REAL, INTENT(INOUT) :: PRT(D%NIJT, D%NKT, KRR)
     REAL, INTENT(IN) :: PTKET(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PDZZ(D%NIJT, D%NKT)
     TYPE(TFIELDMETADATA), INTENT(INOUT) :: TZFIELD
-    REAL, INTENT(INOUT) :: ZLM(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PLM(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZETHETA(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZSHEAR(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PETHETA(D%NIJT, D%NKT)
     INTEGER, INTENT(IN) :: KRRI
-    INTEGER, INTENT(INOUT) :: IIJE
     REAL, INTENT(INOUT) :: ZD
-    REAL, INTENT(INOUT) :: ZEMOIST(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PEMOIST(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     TYPE(CSTURB_t), INTENT(IN) :: CSTURB
-    REAL, INTENT(INOUT) :: ZCOEF_AMPL(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PCOEF_AMPL(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PTHVREF(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZDRTDZ(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZDTHLDZ(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PDRTDZ(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PDTHLDZ(D%NIJT, D%NKT)
     LOGICAL, INTENT(IN) :: OOCEAN
-    INTEGER, INTENT(INOUT) :: IKT
-    INTEGER, INTENT(INOUT) :: IKU
-    REAL, INTENT(INOUT) :: ZPENTE
     REAL, INTENT(INOUT) :: PTHLT(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZWORK2(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PWORK2(D%NIJT, D%NKT)
     LOGICAL, INTENT(INOUT) :: GOCEAN
-    REAL, INTENT(INOUT) :: ZTHLM(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZRM(D%NIJT, D%NKT, KRR)
-    INTEGER, INTENT(INOUT) :: JK
-    INTEGER, INTENT(INOUT) :: IKTE
-    REAL, INTENT(INOUT) :: ZLOCPEXNM(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PTHLM(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PRM(D%NIJT, D%NKT, KRR)
+    REAL, INTENT(INOUT) :: LOCPEXNM(D%NIJT, D%NKT)
     LOGICAL, INTENT(IN) :: OCOMPUTE_SRC
     REAL, INTENT(IN) :: PSRCT(MERGE(D%NIJT, 0, OCOMPUTE_SRC), MERGE(D%NKT, 0, OCOMPUTE_SRC))
     REAL, INTENT(IN) :: PCOEF_AMPL_SAT
-    INTEGER, INTENT(INOUT) :: IKE
-    INTEGER, INTENT(INOUT) :: JIJ
-    REAL, INTENT(INOUT) :: ZAMOIST(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKA
-    REAL, INTENT(INOUT) :: ZCOEF_AMPL_CEI_NUL
-    REAL, INTENT(INOUT) :: ZALPHA
+    REAL, INTENT(INOUT) :: PAMOIST(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PALPHA
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
     REAL, INTENT(INOUT) :: ZWORK1(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKTB
     REAL, INTENT(IN) :: PCEI(MERGE(D%NIJT, 0, OCLOUDMODIFLM), MERGE(D%NKT, 0, OCLOUDMODIFLM))
-    INTEGER, INTENT(INOUT) :: IKL
     TYPE(TURB_t), INTENT(IN) :: TURBN
     REAL, INTENT(IN) :: PCEI_MIN
     REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZVAR
-    INTEGER, INTENT(INOUT) :: IIJB
+    REAL, INTENT(INOUT) :: PVAR
     LOGICAL, INTENT(IN) :: O2D
     CHARACTER(LEN=4), INTENT(IN) :: HTURBLEN_CL
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
-    REAL(KIND=JPHOOK), INTENT(INOUT) :: ZHOOK_HANDLE2
     INTEGER, INTENT(IN) :: KRR
-    REAL, INTENT(INOUT) :: ZWORK2D(D%NIJT)
-    INTEGER, INTENT(INOUT) :: IKB
+    REAL, INTENT(INOUT) :: PWORK2D(D%NIJT)
     REAL, INTENT(IN) :: PCEI_MAX
-    REAL, INTENT(INOUT) :: ZATHETA(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PATHETA(D%NIJT, D%NKT)
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE2
+    REAL :: PSHEAR(D%NIJT, D%NKT)
+    REAL :: PCOEF_AMPL_CEI_NUL
+    REAL :: ZPENTE
+    REAL :: PLM_CLOUD(D%NIJT, D%NKT)
+    INTEGER :: IKB
+    INTEGER :: IIJB
+    INTEGER :: IKL
+    INTEGER :: IKA
+    INTEGER :: IKE
+    INTEGER :: JK
+    INTEGER :: IIJE
+    INTEGER :: IKU
+    INTEGER :: JIJ
+    INTEGER :: IKTB
+    INTEGER :: IKTE
+    INTEGER :: IKT
     !
     !-------------------------------------------------------------------------------
     !
@@ -134,12 +135,21 @@
     !              --------------
     !
     IF (LHOOK) CALL DR_HOOK('TURB:CLOUD_MODIF_LM', 0, ZHOOK_HANDLE2)
+    IKT = D%NKT
+    IKTB = D%NKTB
+    IKTE = D%NKTE
+    IKE = D%NKE
+    IKA = D%NKA
+    IKU = D%NKU
+    IKL = D%NKL
+    IIJE = D%NIJE
+    IIJB = D%NIJB
     ZPENTE = (PCOEF_AMPL_SAT - 1.) / (PCEI_MAX - PCEI_MIN)
-    ZCOEF_AMPL_CEI_NUL = 1. - ZPENTE*PCEI_MIN
+    PCOEF_AMPL_CEI_NUL = 1. - ZPENTE*PCEI_MIN
     !
 !$acc kernels
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-    ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = 1.
+    PCOEF_AMPL(IIJB:IIJE, 1:IKT) = 1.
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
     !
@@ -151,18 +161,18 @@
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
     WHERE (PCEI(IIJB:IIJE, 1:IKT) >= PCEI_MAX)
-      ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = PCOEF_AMPL_SAT
+      PCOEF_AMPL(IIJB:IIJE, 1:IKT) = PCOEF_AMPL_SAT
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
     !
     ! Between the min and max limits of CEI index, linear variation of the
-    ! amplification coefficient ZCOEF_AMPL as a function of CEI
+    ! amplification coefficient PCOEF_AMPL as a function of CEI
     !
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
     WHERE (PCEI(IIJB:IIJE, 1:IKT) < PCEI_MAX .and. PCEI(IIJB:IIJE, 1:IKT) > PCEI_MIN)
-      ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = ZPENTE*PCEI(IIJB:IIJE, 1:IKT) + ZCOEF_AMPL_CEI_NUL
+      PCOEF_AMPL(IIJB:IIJE, 1:IKT) = ZPENTE*PCEI(IIJB:IIJE, 1:IKT) + PCOEF_AMPL_CEI_NUL
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
@@ -174,7 +184,7 @@
     IF (HTURBLEN_CL == TURBN%CTURBLEN) THEN
 !$acc kernels
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-      ZLM_CLOUD(:, :) = ZLM(:, :)
+      PLM_CLOUD(:, :) = PLM(:, :)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
     ELSE
@@ -185,25 +195,25 @@
       CASE ('BL89', 'RM17', 'HM21')
 !$acc kernels
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-        ZSHEAR(:, :) = 0.
+        PSHEAR(:, :) = 0.
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
-        CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, ZTHLM, KRR, ZRM, PTKET, ZSHEAR, ZLM_CLOUD, OOCEAN)
+        CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, PTHLM, KRR, PRM, PTKET, PSHEAR, PLM_CLOUD, OOCEAN)
         !
         !*         3.2 Delta mixing length
         !           -------------------
       CASE ('DELT')
-        CALL DELT(ZLM_CLOUD, ZWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, ZALPHA,  &
+        CALL DELT(PLM_CLOUD, PWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, PALPHA,  &
         & IKU, PDIRCOSZW, IKTB, ZHOOK_HANDLE2, IIJE, ZD, GOCEAN, IKL, IKB, TURBN, JK, PDXX, IKTE, ODZ=.TRUE.)
         !
         !*         3.3 Deardorff mixing length
         !           -----------------------
       CASE ('DEAR')
-        CALL DEAR(ZLM_CLOUD, D, PRT, PDZZ, PZZ, PTKET,  &
-        & ZETHETA, KRRI, IIJE, ZD, ZEMOIST, CST, PTHVREF, ZDRTDZ,  &
-        & ZDTHLDZ, IKT, IKU, PTHLT, ZWORK2, GOCEAN, JK, IKTE, ZLOCPEXNM, OCOMPUTE_SRC,  &
-        & PSRCT, IKE, JIJ, ZAMOIST, IKA, ZALPHA, PDIRCOSZW, ZWORK1, IKTB, IKL, TURBN, PDXX, ZVAR, IIJB,  &
-        & O2D, PDYY, ZHOOK_HANDLE2, KRR, ZWORK2D, IKB, ZATHETA)
+        CALL DEAR(PLM_CLOUD, D, PRT, PDZZ, PZZ, PTKET,  &
+        & PETHETA, KRRI, IIJE, ZD, PEMOIST, CST, PTHVREF, PDRTDZ,  &
+        & PDTHLDZ, IKT, IKU, PTHLT, PWORK2, GOCEAN, JK, IKTE, LOCPEXNM, OCOMPUTE_SRC,  &
+        & PSRCT, IKE, JIJ, PAMOIST, IKA, PALPHA, PDIRCOSZW, ZWORK1, IKTB, IKL, TURBN, PDXX, PVAR, IIJB,  &
+        & O2D, PDYY, ZHOOK_HANDLE2, KRR, PWORK2D, IKB, PATHETA)
         !
       END SELECT
     END IF
@@ -215,16 +225,16 @@
     IF (TURBN%LTURB_DIAG .and. TPFILE%LOPENED) THEN
       TZFIELD = TFIELDMETADATA(CMNHNAME='LM_CLEAR_SKY', CSTDNAME='', CLONGNAME='LM_CLEAR_SKY', CUNITS='m', CDIR='XY', CCOMMENT= &
       & 'X_Y_Z_LM CLEAR SKY', NGRID=1, NTYPE=TYPEREAL, NDIMS=3, LTIMEDEP=.true.)
-!$acc update self( ZLM )
-      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, ZLM)
+!$acc update self( PLM )
+      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, PLM)
     END IF
     !
     ! Amplification of the mixing length when the criteria are verified
     !
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
-    WHERE (ZCOEF_AMPL(IIJB:IIJE, 1:IKT) /= 1.)
-      ZLM(IIJB:IIJE, 1:IKT) = ZCOEF_AMPL(IIJB:IIJE, 1:IKT)*ZLM_CLOUD(IIJB:IIJE, 1:IKT)
+    WHERE (PCOEF_AMPL(IIJB:IIJE, 1:IKT) /= 1.)
+      PLM(IIJB:IIJE, 1:IKT) = PCOEF_AMPL(IIJB:IIJE, 1:IKT)*PLM_CLOUD(IIJB:IIJE, 1:IKT)
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
@@ -234,7 +244,7 @@
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
     WHERE (PCEI(IIJB:IIJE, 1:IKT) == -1.)
-      ZLM(IIJB:IIJE, 1:IKT) = ZLM_CLOUD(IIJB:IIJE, 1:IKT)
+      PLM(IIJB:IIJE, 1:IKT) = PLM_CLOUD(IIJB:IIJE, 1:IKT)
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
@@ -246,13 +256,13 @@
     IF (TURBN%LTURB_DIAG .and. TPFILE%LOPENED) THEN
       TZFIELD = TFIELDMETADATA(CMNHNAME='COEF_AMPL', CSTDNAME='', CLONGNAME='COEF_AMPL', CUNITS='1', CDIR='XY', CCOMMENT= &
       & 'X_Y_Z_COEF AMPL', NGRID=1, NTYPE=TYPEREAL, NDIMS=3, LTIMEDEP=.true.)
-!$acc update self( ZCOEF_AMPL )
-      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, ZCOEF_AMPL)
+!$acc update self( PCOEF_AMPL )
+      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, PCOEF_AMPL)
       !
       TZFIELD = TFIELDMETADATA(CMNHNAME='LM_CLOUD', CSTDNAME='', CLONGNAME='LM_CLOUD', CUNITS='m', CDIR='XY', CCOMMENT= &
       & 'X_Y_Z_LM CLOUD', NGRID=1, NTYPE=TYPEREAL, NDIMS=3, LTIMEDEP=.true.)
-!$acc update self( ZLM_CLOUD )
-      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, ZLM_CLOUD)
+!$acc update self( PLM_CLOUD )
+      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, PLM_CLOUD)
       !
     END IF
     !
