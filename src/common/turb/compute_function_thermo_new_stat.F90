@@ -42,6 +42,8 @@ SUBROUTINE COMPUTE_FUNCTION_THERMO_NEW_STAT (D, PALP, PBETA, PGAM, PLTT, PC, PT,
     REAL, INTENT(INOUT) :: ZRVSAT(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     REAL, INTENT(IN) :: PPABST(D%NIJT, D%NKT)
+
+    INTEGER :: JK, JIJ
     !
     !-------------------------------------------------------------------------------
     !

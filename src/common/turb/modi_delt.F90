@@ -1,0 +1,61 @@
+!     ######spl
+     MODULE MODI_DELT
+!    ################ 
+!
+IMPLICIT NONE
+INTERFACE
+!
+  SUBROUTINE DELT (PLM, ZWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, ZALPHA, IKU, PDIRCOSZW, IKTB,  &
+  & ZHOOK_HANDLE2, IIJE, ZD, GOCEAN, IKL, IKB, TURBN, JK, PDXX, IKTE, ODZ)
+    !     ####################
+    !!
+    !!****  *DELT* routine to compute mixing length for DELT case
+    !
+    !!    AUTHOR
+    !!    ------
+    !!
+    !!     M Tomasini      *Meteo-France
+    !!
+    !!    MODIFICATIONS
+    !!    -------------
+    !!      Original   01/05
+    !!
+    !-------------------------------------------------------------------------------
+    USE YOMHOOK, ONLY: JPHOOK
+    USE MODD_DIMPHYEX, ONLY: DIMPHYEX_t
+    USE MODD_TURB_n, ONLY: TURB_t
+
+    IMPLICIT NONE
+    TYPE(DIMPHYEX_t), INTENT(IN) :: D
+    REAL, INTENT(OUT), DIMENSION(D%NIJT, D%NKT) :: PLM
+    LOGICAL, INTENT(IN) :: ODZ
+    REAL, INTENT(INOUT) :: ZWORK2(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: ZWORK1(D%NIJT, D%NKT)
+    INTEGER, INTENT(INOUT) :: IIJB
+    INTEGER, INTENT(INOUT) :: IKE
+    INTEGER, INTENT(INOUT) :: JIJ
+    LOGICAL, INTENT(IN) :: O2D
+    REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
+    REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
+    INTEGER, INTENT(INOUT) :: IKA
+    INTEGER, INTENT(INOUT) :: IKT
+    REAL, INTENT(INOUT) :: ZALPHA
+    INTEGER, INTENT(INOUT) :: IKU
+    REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
+    INTEGER, INTENT(INOUT) :: IKTB
+    REAL(KIND=JPHOOK), INTENT(INOUT) :: ZHOOK_HANDLE2
+    INTEGER, INTENT(INOUT) :: IIJE
+    REAL, INTENT(INOUT) :: ZD
+    LOGICAL, INTENT(INOUT) :: GOCEAN
+    INTEGER, INTENT(INOUT) :: IKL
+    INTEGER, INTENT(INOUT) :: IKB
+    TYPE(TURB_t), INTENT(IN) :: TURBN
+    INTEGER, INTENT(INOUT) :: JK
+    REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
+    INTEGER, INTENT(INOUT) :: IKTE
+
+  END SUBROUTINE DELT
+
+  END INTERFACE
+
+  END MODULE MODI_DELT

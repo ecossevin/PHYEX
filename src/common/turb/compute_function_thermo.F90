@@ -1,5 +1,5 @@
 SUBROUTINE COMPUTE_FUNCTION_THERMO (D, PALP, PBETA, PGAM, PLTT, PC, PT, PEXN, PCP, PLOCPEXN, PAMOIST, PATHETA, IIJB, PRT, IKT,  &
-  & ZDRVSATDT, ZHOOK_HANDLE2, ZEPS, IIJE, ZRVSAT, CST, PPABST)
+  & ZDRVSATDT, ZHOOK_HANDLE2, ZEPS, IIJE, ZRVSAT, CST, PPABST, KRR)
     !     ########################################################################
     !!
     !!****  *COMPUTE_FUNCTION_THERMO* routine to compute several thermo functions
@@ -27,6 +27,7 @@ SUBROUTINE COMPUTE_FUNCTION_THERMO (D, PALP, PBETA, PGAM, PLTT, PC, PT, PEXN, PC
     !*       0.1   Declarations of dummy arguments
     !
     TYPE(DIMPHYEX_t), INTENT(IN) :: D  ! PHYEX variables dimensions structure
+    INTEGER, INTENT(IN) :: KRR
     REAL, INTENT(IN) :: PALP, PBETA, PGAM, PLTT, PC
     REAL, INTENT(IN), DIMENSION(D%NIJT, D%NKT) :: PT, PEXN, PCP
     !
@@ -42,6 +43,8 @@ SUBROUTINE COMPUTE_FUNCTION_THERMO (D, PALP, PBETA, PGAM, PLTT, PC, PT, PEXN, PC
     REAL, INTENT(INOUT) :: ZRVSAT(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     REAL, INTENT(IN) :: PPABST(D%NIJT, D%NKT)
+
+    INTEGER :: JK, JIJ
     !
     !-------------------------------------------------------------------------------
     !
