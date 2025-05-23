@@ -810,8 +810,8 @@ CASE ('BL89')
 !$acc end kernels
     CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, ZTHLM, KRR, ZRM, PTKET, ZSHEAR, ZLM, OOCEAN)
 
-    CALL DELT(ZLMW, ZWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, ZALPHA,  &
-    & IKU, PDIRCOSZW, IKTB, ZHOOK_HANDLE2, IIJE, ZD, GOCEAN, IKL, IKB, TURBN, JK, PDXX, IKTE, &
+    CALL DELT(ZLMW, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, ZALPHA,  &
+    & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
     & ODZ=.FALSE.)
     ! The minimum mixing length is chosen between Horizontal grid mesh (not taking into account the vertical grid mesh) and RM17.
     ! For large horizontal grid meshes, this is equal to RM17
@@ -829,8 +829,8 @@ CASE ('BL89')
     !           -------------------
     !
   CASE ('DELT')
-    CALL DELT(ZLM, ZWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, ZALPHA,  &
-    & IKU, PDIRCOSZW, IKTB, ZHOOK_HANDLE2, IIJE, ZD, GOCEAN, IKL, IKB, TURBN, JK, PDXX, IKTE, &
+    CALL DELT(ZLM, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, ZALPHA,  &
+    & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
     & ODZ=.TRUE.)
     !
     !*      3.5 Deardorff mixing length

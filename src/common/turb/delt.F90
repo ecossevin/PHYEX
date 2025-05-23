@@ -3,8 +3,8 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-  SUBROUTINE DELT (PLM, ZWORK2, D, ZWORK1, IIJB, IKE, JIJ, O2D, PZZ, PDYY, IKA, IKT, ZALPHA, IKU, PDIRCOSZW, IKTB,  &
-  & ZHOOK_HANDLE2, IIJE, ZD, GOCEAN, IKL, IKB, TURBN, JK, PDXX, IKTE, ODZ)
+  SUBROUTINE DELT (PLM, PWORK2, D, PWORK1, O2D, PZZ, PDYY, ZALPHA, PDIRCOSZW,  &
+  & PD, GOCEAN, TURBN, PDXX, ODZ)
     !     ####################
     !!
     !!****  *DELT* routine to compute mixing length for DELT case
@@ -35,37 +35,48 @@
     TYPE(DIMPHYEX_t), INTENT(IN) :: D
     REAL, INTENT(OUT), DIMENSION(D%NIJT, D%NKT) :: PLM
     LOGICAL, INTENT(IN) :: ODZ
-    REAL, INTENT(INOUT) :: ZWORK2(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZWORK1(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IIJB
-    INTEGER, INTENT(INOUT) :: IKE
-    INTEGER, INTENT(INOUT) :: JIJ
+    REAL, INTENT(INOUT) :: PWORK2(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PWORK1(D%NIJT, D%NKT)
     LOGICAL, INTENT(IN) :: O2D
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKA
-    INTEGER, INTENT(INOUT) :: IKT
     REAL, INTENT(INOUT) :: ZALPHA
-    INTEGER, INTENT(INOUT) :: IKU
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
-    INTEGER, INTENT(INOUT) :: IKTB
-    REAL(KIND=JPHOOK), INTENT(INOUT) :: ZHOOK_HANDLE2
-    INTEGER, INTENT(INOUT) :: IIJE
-    REAL, INTENT(INOUT) :: ZD
+    REAL, INTENT(INOUT) :: PD
     LOGICAL, INTENT(INOUT) :: GOCEAN
-    INTEGER, INTENT(INOUT) :: IKL
-    INTEGER, INTENT(INOUT) :: IKB
     TYPE(TURB_t), INTENT(IN) :: TURBN
-    INTEGER, INTENT(INOUT) :: JK
     REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKTE
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE2
+    INTEGER :: IKTE
+    INTEGER :: JK
+    INTEGER :: IKL
+    INTEGER :: IIJE
+    INTEGER :: IKTB
+    INTEGER :: IKU
+    INTEGER :: IKA
+    INTEGER :: IIJB
+    INTEGER :: IKE
+    INTEGER :: JIJ
+    INTEGER :: IKT
+    INTEGER :: IKB
     !-------------------------------------------------------------------------------
     !
     IF (LHOOK) CALL DR_HOOK('TURB:DELT', 0, ZHOOK_HANDLE2)
     !
-    CALL MXF_PHY(D, PDXX, ZWORK1)
+    IKT = D%NKT
+    IKTB = D%NKTB
+    IKTE = D%NKTE
+    IKB = D%NKB
+    IKE = D%NKE
+    IKA = D%NKA
+    IKU = D%NKU
+    IKL = D%NKL
+    IIJE = D%NIJE
+    IIJB = D%NIJB
+    CALL MXF_PHY(D, PDXX, PWORK1)
     IF (.not.O2D) THEN
-      CALL MYF_PHY(D, PDYY, ZWORK2)
+      CALL MYF_PHY(D, PDYY, PWORK2)
     END IF
     !
     IF (ODZ) THEN
@@ -87,13 +98,13 @@
         IF (O2D) THEN
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-          PLM(IIJB:IIJE, 1:IKT) = SQRT(PLM(IIJB:IIJE, 1:IKT)*ZWORK1(IIJB:IIJE, 1:IKT))
+          PLM(IIJB:IIJE, 1:IKT) = SQRT(PLM(IIJB:IIJE, 1:IKT)*PWORK1(IIJB:IIJE, 1:IKT))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
         ELSE
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-          PLM(IIJB:IIJE, 1:IKT) = (PLM(IIJB:IIJE, 1:IKT)*ZWORK1(IIJB:IIJE, 1:IKT)*ZWORK2(IIJB:IIJE, 1:IKT))**(1. / 3.)
+          PLM(IIJB:IIJE, 1:IKT) = (PLM(IIJB:IIJE, 1:IKT)*PWORK1(IIJB:IIJE, 1:IKT)*PWORK2(IIJB:IIJE, 1:IKT))**(1. / 3.)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
         END IF
@@ -110,13 +121,13 @@
         IF (O2D) THEN
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-          PLM(:, :) = ZWORK1(:, :)
+          PLM(:, :) = PWORK1(:, :)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
         ELSE
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-          PLM(IIJB:IIJE, 1:IKT) = (ZWORK1(IIJB:IIJE, 1:IKT)*ZWORK2(IIJB:IIJE, 1:IKT))**(1. / 2.)
+          PLM(IIJB:IIJE, 1:IKT) = (PWORK1(IIJB:IIJE, 1:IKT)*PWORK2(IIJB:IIJE, 1:IKT))**(1. / 2.)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
         END IF
@@ -133,18 +144,18 @@
       DO JIJ=IIJB,IIJE
         IF (GOCEAN) THEN
           DO JK=IKTE,IKTB,-1
-            ZD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
-            IF (PLM(JIJ, JK) > ZD) THEN
-              PLM(JIJ, JK) = ZD
+            PD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
+            IF (PLM(JIJ, JK) > PD) THEN
+              PLM(JIJ, JK) = PD
             ELSE
               EXIT
             END IF
           END DO
         ELSE
           DO JK=IKTB,IKTE
-            ZD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
-            IF (PLM(JIJ, JK) > ZD) THEN
-              PLM(JIJ, JK) = ZD
+            PD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
+            IF (PLM(JIJ, JK) > PD) THEN
+              PLM(JIJ, JK) = PD
             ELSE
               EXIT
             END IF
