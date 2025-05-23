@@ -1,6 +1,11 @@
-  SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, ZETHETA, KRRI, IIJE, ZD, ZEMOIST, CST, PTHVREF, ZDRTDZ, ZDTHLDZ, IKT, IKU,  &
-  & PTHLT, ZWORK2, GOCEAN, JK, IKTE, ZLOCPEXNM, OCOMPUTE_SRC, PSRCT, IKE, JIJ, ZAMOIST, IKA, ZALPHA, PDIRCOSZW, ZWORK1, IKTB,  &
-  & IKL, TURBN, PDXX, ZVAR, IIJB, O2D, PDYY, ZHOOK_HANDLE2, KRR, ZWORK2D, IKB, ZATHETA)
+!MNH_LIC Copyright 1994-2021 CNRS, Meteo-France and Universite Paul Sabatier
+!MNH_LIC This is part of the Meso-NH software governed by the CeCILL-C licence
+!MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
+!MNH_LIC for details. version 1.
+!-----------------------------------------------------------------
+SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, PETHETA, KRRI, ZD, PEMOIST, CST, PTHVREF, PDRTDZ, PDTHLDZ, &
+  & PTHLT, PWORK2, GOCEAN, PLOCPEXNM, OCOMPUTE_SRC, PSRCT, PAMOIST, PALPHA, PDIRCOSZW, PWORK1, &
+  & TURBN, PDXX, ZVAR, O2D, PDYY, KRR, PWORK2D, PATHETA)
     !     ####################
     !!
     !!****  *DEAR* routine to compute mixing length for DEARdorff case
@@ -40,53 +45,64 @@
     REAL, INTENT(IN) :: PDZZ(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PTKET(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZETHETA(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PETHETA(D%NIJT, D%NKT)
     INTEGER, INTENT(IN) :: KRRI
-    INTEGER, INTENT(INOUT) :: IIJE
     REAL, INTENT(INOUT) :: ZD
-    REAL, INTENT(INOUT) :: ZEMOIST(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PEMOIST(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     REAL, INTENT(IN) :: PTHVREF(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZDRTDZ(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZDTHLDZ(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKT
-    INTEGER, INTENT(INOUT) :: IKU
+    REAL, INTENT(INOUT) :: PDRTDZ(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PDTHLDZ(D%NIJT, D%NKT)
     REAL, INTENT(INOUT) :: PTHLT(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZWORK2(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PWORK2(D%NIJT, D%NKT)
     LOGICAL, INTENT(INOUT) :: GOCEAN
-    INTEGER, INTENT(INOUT) :: JK
-    INTEGER, INTENT(INOUT) :: IKTE
-    REAL, INTENT(INOUT) :: ZLOCPEXNM(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PLOCPEXNM(D%NIJT, D%NKT)
     LOGICAL, INTENT(IN) :: OCOMPUTE_SRC
     REAL, INTENT(IN) :: PSRCT(MERGE(D%NIJT, 0, OCOMPUTE_SRC), MERGE(D%NKT, 0, OCOMPUTE_SRC))
-    INTEGER, INTENT(INOUT) :: IKE
-    INTEGER, INTENT(INOUT) :: JIJ
-    REAL, INTENT(INOUT) :: ZAMOIST(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKA
-    REAL, INTENT(INOUT) :: ZALPHA
+    REAL, INTENT(INOUT) :: PAMOIST(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PALPHA
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
-    REAL, INTENT(INOUT) :: ZWORK1(D%NIJT, D%NKT)
-    INTEGER, INTENT(INOUT) :: IKTB
-    INTEGER, INTENT(INOUT) :: IKL
+    REAL, INTENT(INOUT) :: PWORK1(D%NIJT, D%NKT)
     TYPE(TURB_t), INTENT(IN) :: TURBN
     REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
     REAL, INTENT(INOUT) :: ZVAR
-    INTEGER, INTENT(INOUT) :: IIJB
     LOGICAL, INTENT(IN) :: O2D
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
-    REAL(KIND=JPHOOK), INTENT(INOUT) :: ZHOOK_HANDLE2
-    INTEGER, INTENT(IN) :: KRR
-    REAL, INTENT(INOUT) :: ZWORK2D(D%NIJT)
-    INTEGER, INTENT(INOUT) :: IKB
-    REAL, INTENT(INOUT) :: ZATHETA(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: PWORK2D(D%NIJT)
+    REAL, INTENT(INOUT) :: PATHETA(D%NIJT, D%NKT)
+
+    REAL(KIND=JPHOOK) :: ZHOOK_HANDLE2
+    INTEGER :: IKB
+    INTEGER :: KRR
+    INTEGER :: IIJB
+    INTEGER :: IKTB
+    INTEGER :: IKA
+    INTEGER :: IKE
+    INTEGER :: JK
+    INTEGER :: IKT
+    INTEGER :: IIJE
+    INTEGER :: IKU
+    INTEGER :: IKTE
+    INTEGER :: JIJ
+    INTEGER :: IKL
     !-------------------------------------------------------------------------------
     !
     !   initialize the mixing length with the mesh grid
     IF (LHOOK) CALL DR_HOOK('TURB:DEAR', 0, ZHOOK_HANDLE2)
+    IKT = D%NKT
+    IKTB = D%NKTB
+    IKTE = D%NKTE
+    IKB = D%NKB
+    IKE = D%NKE
+    IKA = D%NKA
+    IKU = D%NKU
+    IKL = D%NKL
+    IIJE = D%NIJE
+    IIJB = D%NIJB
     IF (TURBN%CTURBDIM /= '1DIM') THEN
-      CALL MXF_PHY(D, PDXX, ZWORK1)
+      CALL MXF_PHY(D, PDXX, PWORK1)
       IF (.not.O2D) THEN
-        CALL MYF_PHY(D, PDYY, ZWORK2)
+        CALL MYF_PHY(D, PDYY, PWORK2)
       END IF
     END IF
     ! 1D turbulence scheme
@@ -105,30 +121,30 @@
       IF (O2D) THEN
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-        PLM(IIJB:IIJE, 1:IKT) = SQRT(PLM(IIJB:IIJE, 1:IKT)*ZWORK1(IIJB:IIJE, 1:IKT))
+        PLM(IIJB:IIJE, 1:IKT) = SQRT(PLM(IIJB:IIJE, 1:IKT)*PWORK1(IIJB:IIJE, 1:IKT))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
       ELSE
 !$acc kernels present_cr( PLM )
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-        PLM(IIJB:IIJE, 1:IKT) = (PLM(IIJB:IIJE, 1:IKT)*ZWORK1(IIJB:IIJE, 1:IKT)*ZWORK2(IIJB:IIJE, 1:IKT))**(1. / 3.)
+        PLM(IIJB:IIJE, 1:IKT) = (PLM(IIJB:IIJE, 1:IKT)*PWORK1(IIJB:IIJE, 1:IKT)*PWORK2(IIJB:IIJE, 1:IKT))**(1. / 3.)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
       END IF
     END IF
     !   compute a mixing length limited by the stability
     !
-    CALL ETHETA(D, CST, KRR, KRRI, PTHLT, PRT, ZLOCPEXNM, ZATHETA, PSRCT, GOCEAN, OCOMPUTE_SRC, ZETHETA)
-    CALL EMOIST(D, CST, KRR, KRRI, PTHLT, PRT, ZLOCPEXNM, ZAMOIST, PSRCT, GOCEAN, ZEMOIST)
+    CALL ETHETA(D, CST, KRR, KRRI, PTHLT, PRT, PLOCPEXNM, PATHETA, PSRCT, GOCEAN, OCOMPUTE_SRC, PETHETA)
+    CALL EMOIST(D, CST, KRR, KRRI, PTHLT, PRT, PLOCPEXNM, PAMOIST, PSRCT, GOCEAN, PEMOIST)
     !
     IF (KRR > 0) THEN
 !$acc kernels
 !$acc loop independent collapse( 2 )
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
-          ZDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
+          PDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
           &  - IKL)) / PDZZ(JIJ, JK))
-          ZDRTDZ(JIJ, JK) = 0.5*((PRT(JIJ, JK + IKL, 1) - PRT(JIJ, JK, 1)) / PDZZ(JIJ, JK + IKL) + (PRT(JIJ, JK, 1) - PRT(JIJ, JK &
+          PDRTDZ(JIJ, JK) = 0.5*((PRT(JIJ, JK + IKL, 1) - PRT(JIJ, JK, 1)) / PDZZ(JIJ, JK + IKL) + (PRT(JIJ, JK, 1) - PRT(JIJ, JK &
           &  - IKL, 1)) / PDZZ(JIJ, JK))
         END DO
       END DO
@@ -139,9 +155,9 @@
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
           IF (GOCEAN) THEN
-            ZVAR = CST%XG*(CST%XALPHAOC*ZDTHLDZ(JIJ, JK) - CST%XBETAOC*ZDRTDZ(JIJ, JK))
+            ZVAR = CST%XG*(CST%XALPHAOC*PDTHLDZ(JIJ, JK) - CST%XBETAOC*PDRTDZ(JIJ, JK))
           ELSE
-            ZVAR = CST%XG / PTHVREF(JIJ, JK)*(ZETHETA(JIJ, JK)*ZDTHLDZ(JIJ, JK) + ZEMOIST(JIJ, JK)*ZDRTDZ(JIJ, JK))
+            ZVAR = CST%XG / PTHVREF(JIJ, JK)*(PETHETA(JIJ, JK)*PDTHLDZ(JIJ, JK) + PEMOIST(JIJ, JK)*PDRTDZ(JIJ, JK))
           END IF
           !
           IF (ZVAR > 0.) THEN
@@ -157,12 +173,12 @@
 !$acc loop independent collapse( 2 ) private( ZVAR )
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
-          ZDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
+          PDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
           &  - IKL)) / PDZZ(JIJ, JK))
           IF (GOCEAN) THEN
-            ZVAR = CST%XG*CST%XALPHAOC*ZDTHLDZ(JIJ, JK)
+            ZVAR = CST%XG*CST%XALPHAOC*PDTHLDZ(JIJ, JK)
           ELSE
-            ZVAR = CST%XG / PTHVREF(JIJ, JK)*ZETHETA(JIJ, JK)*ZDTHLDZ(JIJ, JK)
+            ZVAR = CST%XG / PTHVREF(JIJ, JK)*PETHETA(JIJ, JK)*PDTHLDZ(JIJ, JK)
           END IF
           !
           IF (ZVAR > 0.) THEN
@@ -172,41 +188,41 @@
       END DO
 !$acc end kernels
     END IF
-!$acc kernels present( ZWORK2D, PLM )
+!$acc kernels present( PWORK2D, PLM )
     !  special case near the surface
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-    ZDTHLDZ(IIJB:IIJE, IKB) = (PTHLT(IIJB:IIJE, IKB + IKL) - PTHLT(IIJB:IIJE, IKB)) / PDZZ(IIJB:IIJE, IKB + IKL)
+    PDTHLDZ(IIJB:IIJE, IKB) = (PTHLT(IIJB:IIJE, IKB + IKL) - PTHLT(IIJB:IIJE, IKB)) / PDZZ(IIJB:IIJE, IKB + IKL)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ! For dry simulations
     IF (KRR > 0) THEN
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      ZDRTDZ(IIJB:IIJE, IKB) = (PRT(IIJB:IIJE, IKB + IKL, 1) - PRT(IIJB:IIJE, IKB, 1)) / PDZZ(IIJB:IIJE, IKB + IKL)
+      PDRTDZ(IIJB:IIJE, IKB) = (PRT(IIJB:IIJE, IKB + IKL, 1) - PRT(IIJB:IIJE, IKB, 1)) / PDZZ(IIJB:IIJE, IKB + IKL)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ELSE
-      ZDRTDZ(:, IKB) = 0
+      PDRTDZ(:, IKB) = 0
     END IF
     !
     IF (GOCEAN) THEN
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      ZWORK2D(IIJB:IIJE) = CST%XG*(CST%XALPHAOC*ZDTHLDZ(IIJB:IIJE, IKB) - CST%XBETAOC*ZDRTDZ(IIJB:IIJE, IKB))
+      PWORK2D(IIJB:IIJE) = CST%XG*(CST%XALPHAOC*PDTHLDZ(IIJB:IIJE, IKB) - CST%XBETAOC*PDRTDZ(IIJB:IIJE, IKB))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ELSE
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      ZWORK2D(IIJB:IIJE) = CST%XG / PTHVREF(IIJB:IIJE, IKB)*(ZETHETA(IIJB:IIJE, IKB)*ZDTHLDZ(IIJB:IIJE, IKB) + ZEMOIST(IIJB:IIJE, &
-      &  IKB)*ZDRTDZ(IIJB:IIJE, IKB))
+      PWORK2D(IIJB:IIJE) = CST%XG / PTHVREF(IIJB:IIJE, IKB)*(PETHETA(IIJB:IIJE, IKB)*PDTHLDZ(IIJB:IIJE, IKB) + PEMOIST(IIJB:IIJE, &
+      &  IKB)*PDRTDZ(IIJB:IIJE, IKB))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     END IF
 !$mnh_expand_where ( JIJ=IIJB:IIJE )
-    WHERE (ZWORK2D(IIJB:IIJE) > 0.)
+    WHERE (PWORK2D(IIJB:IIJE) > 0.)
       PLM(IIJB:IIJE, IKB) =  &
-      & MAX(CST%XMNH_EPSILON, MIN(PLM(IIJB:IIJE, IKB), 0.76*SQRT(PTKET(IIJB:IIJE, IKB) / ZWORK2D(IIJB:IIJE))))
+      & MAX(CST%XMNH_EPSILON, MIN(PLM(IIJB:IIJE, IKB), 0.76*SQRT(PTKET(IIJB:IIJE, IKB) / PWORK2D(IIJB:IIJE))))
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE )
     !
     !  mixing length limited by the distance normal to the surface (with the same factor as for BL89)
     !
     IF (.not.TURBN%LRMC01) THEN
-      ZALPHA = 0.5**(-1.5)
+      PALPHA = 0.5**(-1.5)
       !
 !$acc loop independent private( GZD,ZD )
       DO JIJ=IIJB,IIJE
@@ -214,7 +230,7 @@
         IF (GOCEAN) THEN
 !$acc loop seq
           DO JK=IKTE,IKTB,-1
-            ZD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
+            ZD = PALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
             IF (PLM(JIJ, JK) > ZD .and. GZD) THEN
               PLM(JIJ, JK) = ZD
             ELSE
@@ -223,7 +239,7 @@
           END DO
         ELSE
           DO JK=IKTB,IKTE
-            ZD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
+            ZD = PALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
             IF (PLM(JIJ, JK) > ZD .and. GZD) THEN
               PLM(JIJ, JK) = ZD
             ELSE
