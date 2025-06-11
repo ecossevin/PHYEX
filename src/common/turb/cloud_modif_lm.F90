@@ -214,7 +214,7 @@
         !           -----------------------
       CASE ('DEAR')
         CALL DEAR(PLM_CLOUD, D, PRT, PDZZ, PZZ, PTKET,  &
-        & PETHETA, KRRI,  PD, PEMOIST, CST, PTHVREF, PDRTDZ,  &
+        & PETHETA, KRRI, PEMOIST, CST, PTHVREF, PDRTDZ,  &
         & PDTHLDZ, PTHLT, PWORK2, GOCEAN, LOCPEXNM, OCOMPUTE_SRC,  &
         & PSRCT, PAMOIST, PALPHA, PDIRCOSZW, PWORK1, TURBN, PDXX, &
         & O2D, PDYY, KRR, PWORK2D, PATHETA)
