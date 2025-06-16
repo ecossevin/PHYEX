@@ -465,7 +465,6 @@ REAL, DIMENSION(D%NIJT,D%NKT) ::     &
           ZATHETA_ICE,ZAMOIST_ICE,    &  ! coefficients for s = f (Thetal,Rnp)
           ZRVSAT, ZDRVSATDT,          &  ! local array for routine compute_function_thermo
           ZWORK1,ZWORK2,              &  ! working array syntax
-          ZETHETA,ZEMOIST,            &  ! coef ETHETA and EMOIST (for DEAR routine)
           ZDTHLDZ,ZDRTDZ,             &  ! dtheta_l/dz, drt_dz used for computing the stablity criterion
           ZCOEF_AMPL,                 &  ! Amplification coefficient of the mixing length
                                          ! when the instability criterium is verified (routine CLOUD_MODIF_LM)
@@ -497,7 +496,6 @@ REAL                :: ZEXPL        ! 1-TURBN%XIMPL deg of expl.
 REAL                :: ZRVORD       ! RV/RD
 REAL                :: ZEPS         ! XMV / XMD
 REAL                :: ZD           ! distance to the surface (for routine DELT)
-REAL                :: ZVAR         ! Intermediary variable (for routine DEAR)
 REAL                :: ZPENTE       ! Slope of the amplification straight line (for routine CLOUD_MODIF_LM)
 REAL                :: ZCOEF_AMPL_CEI_NUL! Ordonnate at the origin of the
                                          ! amplification straight line (for routine CLOUD_MODIF_LM)
@@ -838,7 +836,7 @@ CASE ('BL89')
     !
   CASE ('DEAR')
     CALL DEAR(ZLM, D, PRT, PDZZ, PZZ, PTKET,  &
-    & ZETHETA, KRRI, ZEMOIST, CST, PTHVREF, ZDRTDZ,  &
+    & KRRI, CST, PTHVREF, ZDRTDZ,  &
     & ZDTHLDZ, PTHLT, ZWORK2, GOCEAN, ZLOCPEXNM, OCOMPUTE_SRC,  &
     & PSRCT, ZAMOIST, ZALPHA, PDIRCOSZW, ZWORK1, TURBN, PDXX, &
     & O2D, PDYY, KRR, ZWORK2D, ZATHETA)
@@ -880,7 +878,7 @@ CASE ('BL89')
   !*      3.5 Mixing length modification for cloud
   !           -----------------------
   IF (OCLOUDMODIFLM) CALL CLOUD_MODIF_LM(OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ,  &
-  & TZFIELD,   ZLM, PZZ, ZETHETA, ZSHEAR, KRRI, ZD, ZEMOIST, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, ZDRTDZ, ZDTHLDZ, OOCEAN, &
+  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, ZD, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, ZDRTDZ, ZDTHLDZ, OOCEAN, &
   &  PTHLT, ZWORK2, GOCEAN, ZTHLM, ZRM, ZLOCPEXNM, OCOMPUTE_SRC,  &
   & PSRCT, PCOEF_AMPL_SAT, ZAMOIST, ZALPHA, PDIRCOSZW, ZWORK1,  &
   & PCEI, TURBN, PCEI_MIN, PDXX,O2D, HTURBLEN_CL, PDYY, KRR,  &
