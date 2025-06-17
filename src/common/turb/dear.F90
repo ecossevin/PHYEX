@@ -3,8 +3,8 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, 
-  & PTHLT, PWORK2, GOCEAN, PLOCPEXNM, OCOMPUTE_SRC, PSRCT, PAMOIST, PDIRCOSZW, PWORK1, &
+SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, &
+  & PTHLT, PWORK2, GOCEAN, PLOCPEXNM, OCOMPUTE_SRC, PSRCT, PAMOIST, PDIRCOS, ZW, PWORK1, &
   & TURBN, PDXX, O2D, PDYY, KRR, PWORK2D, PATHETA)
     !     ####################
     !!
