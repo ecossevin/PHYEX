@@ -3,8 +3,8 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTHLDZ, &
-  & PTHLT, PWORK2, GOCEAN, PLOCPEXNM, OCOMPUTE_SRC, PSRCT, PAMOIST, PALPHA, PDIRCOSZW, PWORK1, &
+SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, 
+  & PTHLT, PWORK2, GOCEAN, PLOCPEXNM, OCOMPUTE_SRC, PSRCT, PAMOIST, PDIRCOSZW, PWORK1, &
   & TURBN, PDXX, O2D, PDYY, KRR, PWORK2D, PATHETA)
     !     ####################
     !!
@@ -51,8 +51,8 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
     REAL :: ZEMOIST(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     REAL, INTENT(IN) :: PTHVREF(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: PDRTDZ(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: PDTHLDZ(D%NIJT, D%NKT)
+    REAL :: ZDRTDZ(D%NIJT, D%NKT) !drt_dz used for computing the stablity criterion
+    REAL :: ZDTHLDZ(D%NIJT, D%NKT) !dtheta_l/dz used for computing the stablity criterion
     REAL, INTENT(INOUT) :: PTHLT(D%NIJT, D%NKT)
     REAL, INTENT(INOUT) :: PWORK2(D%NIJT, D%NKT)
     LOGICAL, INTENT(INOUT) :: GOCEAN
@@ -60,7 +60,7 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
     LOGICAL, INTENT(IN) :: OCOMPUTE_SRC
     REAL, INTENT(IN) :: PSRCT(MERGE(D%NIJT, 0, OCOMPUTE_SRC), MERGE(D%NKT, 0, OCOMPUTE_SRC))
     REAL, INTENT(INOUT) :: PAMOIST(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: PALPHA
+    REAL :: ZALPHA
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
     REAL, INTENT(INOUT) :: PWORK1(D%NIJT, D%NKT)
     TYPE(TURB_t), INTENT(IN) :: TURBN
@@ -142,9 +142,9 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
 !$acc loop independent collapse( 2 )
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
-          PDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
+          ZDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
           &  - IKL)) / PDZZ(JIJ, JK))
-          PDRTDZ(JIJ, JK) = 0.5*((PRT(JIJ, JK + IKL, 1) - PRT(JIJ, JK, 1)) / PDZZ(JIJ, JK + IKL) + (PRT(JIJ, JK, 1) - PRT(JIJ, JK &
+          ZDRTDZ(JIJ, JK) = 0.5*((PRT(JIJ, JK + IKL, 1) - PRT(JIJ, JK, 1)) / PDZZ(JIJ, JK + IKL) + (PRT(JIJ, JK, 1) - PRT(JIJ, JK &
           &  - IKL, 1)) / PDZZ(JIJ, JK))
         END DO
       END DO
@@ -155,9 +155,9 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
           IF (GOCEAN) THEN
-            ZVAR = CST%XG*(CST%XALPHAOC*PDTHLDZ(JIJ, JK) - CST%XBETAOC*PDRTDZ(JIJ, JK))
+            ZVAR = CST%XG*(CST%XALPHAOC*ZDTHLDZ(JIJ, JK) - CST%XBETAOC*ZDRTDZ(JIJ, JK))
           ELSE
-            ZVAR = CST%XG / PTHVREF(JIJ, JK)*(ZETHETA(JIJ, JK)*PDTHLDZ(JIJ, JK) + ZEMOIST(JIJ, JK)*PDRTDZ(JIJ, JK))
+            ZVAR = CST%XG / PTHVREF(JIJ, JK)*(ZETHETA(JIJ, JK)*ZDTHLDZ(JIJ, JK) + ZEMOIST(JIJ, JK)*ZDRTDZ(JIJ, JK))
           END IF
           !
           IF (ZVAR > 0.) THEN
@@ -173,12 +173,12 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
 !$acc loop independent collapse( 2 ) private( ZVAR )
       DO JK=IKTB + 1,IKTE - 1
         DO JIJ=IIJB,IIJE
-          PDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
+          ZDTHLDZ(JIJ, JK) = 0.5*((PTHLT(JIJ, JK + IKL) - PTHLT(JIJ, JK)) / PDZZ(JIJ, JK + IKL) + (PTHLT(JIJ, JK) - PTHLT(JIJ, JK &
           &  - IKL)) / PDZZ(JIJ, JK))
           IF (GOCEAN) THEN
-            ZVAR = CST%XG*CST%XALPHAOC*PDTHLDZ(JIJ, JK)
+            ZVAR = CST%XG*CST%XALPHAOC*ZDTHLDZ(JIJ, JK)
           ELSE
-            ZVAR = CST%XG / PTHVREF(JIJ, JK)*ZETHETA(JIJ, JK)*PDTHLDZ(JIJ, JK)
+            ZVAR = CST%XG / PTHVREF(JIJ, JK)*ZETHETA(JIJ, JK)*ZDTHLDZ(JIJ, JK)
           END IF
           !
           IF (ZVAR > 0.) THEN
@@ -191,25 +191,25 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
 !$acc kernels present( PWORK2D, PLM )
     !  special case near the surface
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-    PDTHLDZ(IIJB:IIJE, IKB) = (PTHLT(IIJB:IIJE, IKB + IKL) - PTHLT(IIJB:IIJE, IKB)) / PDZZ(IIJB:IIJE, IKB + IKL)
+    ZDTHLDZ(IIJB:IIJE, IKB) = (PTHLT(IIJB:IIJE, IKB + IKL) - PTHLT(IIJB:IIJE, IKB)) / PDZZ(IIJB:IIJE, IKB + IKL)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ! For dry simulations
     IF (KRR > 0) THEN
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      PDRTDZ(IIJB:IIJE, IKB) = (PRT(IIJB:IIJE, IKB + IKL, 1) - PRT(IIJB:IIJE, IKB, 1)) / PDZZ(IIJB:IIJE, IKB + IKL)
+      ZDRTDZ(IIJB:IIJE, IKB) = (PRT(IIJB:IIJE, IKB + IKL, 1) - PRT(IIJB:IIJE, IKB, 1)) / PDZZ(IIJB:IIJE, IKB + IKL)
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ELSE
-      PDRTDZ(:, IKB) = 0
+      ZDRTDZ(:, IKB) = 0
     END IF
     !
     IF (GOCEAN) THEN
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      PWORK2D(IIJB:IIJE) = CST%XG*(CST%XALPHAOC*PDTHLDZ(IIJB:IIJE, IKB) - CST%XBETAOC*PDRTDZ(IIJB:IIJE, IKB))
+      PWORK2D(IIJB:IIJE) = CST%XG*(CST%XALPHAOC*ZDTHLDZ(IIJB:IIJE, IKB) - CST%XBETAOC*ZDRTDZ(IIJB:IIJE, IKB))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     ELSE
 !$mnh_expand_array ( JIJ=IIJB:IIJE )
-      PWORK2D(IIJB:IIJE) = CST%XG / PTHVREF(IIJB:IIJE, IKB)*(ZETHETA(IIJB:IIJE, IKB)*PDTHLDZ(IIJB:IIJE, IKB) + ZEMOIST(IIJB:IIJE, &
-      &  IKB)*PDRTDZ(IIJB:IIJE, IKB))
+      PWORK2D(IIJB:IIJE) = CST%XG / PTHVREF(IIJB:IIJE, IKB)*(ZETHETA(IIJB:IIJE, IKB)*ZDTHLDZ(IIJB:IIJE, IKB) + ZEMOIST(IIJB:IIJE, &
+      &  IKB)*ZDRTDZ(IIJB:IIJE, IKB))
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE )
     END IF
 !$mnh_expand_where ( JIJ=IIJB:IIJE )
@@ -222,7 +222,7 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
     !  mixing length limited by the distance normal to the surface (with the same factor as for BL89)
     !
     IF (.not.TURBN%LRMC01) THEN
-      PALPHA = 0.5**(-1.5)
+      ZALPHA = 0.5**(-1.5)
       !
 !$acc loop independent private( GZD,ZD )
       DO JIJ=IIJB,IIJE
@@ -230,7 +230,7 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
         IF (GOCEAN) THEN
 !$acc loop seq
           DO JK=IKTE,IKTB,-1
-            ZD = PALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
+            ZD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
             IF (PLM(JIJ, JK) > ZD .and. GZD) THEN
               PLM(JIJ, JK) = ZD
             ELSE
@@ -239,7 +239,7 @@ SUBROUTINE DEAR (PLM, D, PRT, PDZZ, PZZ, PTKET, KRRI, CST, PTHVREF, PDRTDZ, PDTH
           END DO
         ELSE
           DO JK=IKTB,IKTE
-            ZD = PALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
+            ZD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
             IF (PLM(JIJ, JK) > ZD .and. GZD) THEN
               PLM(JIJ, JK) = ZD
             ELSE

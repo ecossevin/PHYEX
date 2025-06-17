@@ -465,7 +465,6 @@ REAL, DIMENSION(D%NIJT,D%NKT) ::     &
           ZATHETA_ICE,ZAMOIST_ICE,    &  ! coefficients for s = f (Thetal,Rnp)
           ZRVSAT, ZDRVSATDT,          &  ! local array for routine compute_function_thermo
           ZWORK1,ZWORK2,              &  ! working array syntax
-          ZDTHLDZ,ZDRTDZ,             &  ! dtheta_l/dz, drt_dz used for computing the stablity criterion
           ZCOEF_AMPL,                 &  ! Amplification coefficient of the mixing length
                                          ! when the instability criterium is verified (routine CLOUD_MODIF_LM)
           ZLM_CLOUD,                  &  ! Turbulent mixing length in the clouds (routine CLOUD_MODIF_LM)
@@ -808,7 +807,7 @@ CASE ('BL89')
 !$acc end kernels
     CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, ZTHLM, KRR, ZRM, PTKET, ZSHEAR, ZLM, OOCEAN)
 
-    CALL DELT(ZLMW, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, ZALPHA,  &
+    CALL DELT(ZLMW, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, &
     & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
     & ODZ=.FALSE.)
     ! The minimum mixing length is chosen between Horizontal grid mesh (not taking into account the vertical grid mesh) and RM17.
@@ -827,7 +826,7 @@ CASE ('BL89')
     !           -------------------
     !
   CASE ('DELT')
-    CALL DELT(ZLM, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, ZALPHA,  &
+    CALL DELT(ZLM, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, &
     & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
     & ODZ=.TRUE.)
     !
@@ -836,9 +835,9 @@ CASE ('BL89')
     !
   CASE ('DEAR')
     CALL DEAR(ZLM, D, PRT, PDZZ, PZZ, PTKET,  &
-    & KRRI, CST, PTHVREF, ZDRTDZ,  &
-    & ZDTHLDZ, PTHLT, ZWORK2, GOCEAN, ZLOCPEXNM, OCOMPUTE_SRC,  &
-    & PSRCT, ZAMOIST, ZALPHA, PDIRCOSZW, ZWORK1, TURBN, PDXX, &
+    & KRRI, CST, PTHVREF, &
+    & PTHLT, ZWORK2, GOCEAN, ZLOCPEXNM, OCOMPUTE_SRC,  &
+    & PSRCT, ZAMOIST, PDIRCOSZW, ZWORK1, TURBN, PDXX, &
     & O2D, PDYY, KRR, ZWORK2D, ZATHETA)
     !
     !*      3.6 Blackadar mixing length
@@ -878,9 +877,9 @@ CASE ('BL89')
   !*      3.5 Mixing length modification for cloud
   !           -----------------------
   IF (OCLOUDMODIFLM) CALL CLOUD_MODIF_LM(OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ,  &
-  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, ZD, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, ZDRTDZ, ZDTHLDZ, OOCEAN, &
+  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, ZD, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, OOCEAN, &
   &  PTHLT, ZWORK2, GOCEAN, ZTHLM, ZRM, ZLOCPEXNM, OCOMPUTE_SRC,  &
-  & PSRCT, PCOEF_AMPL_SAT, ZAMOIST, ZALPHA, PDIRCOSZW, ZWORK1,  &
+  & PSRCT, PCOEF_AMPL_SAT, ZAMOIST, PDIRCOSZW, ZWORK1,  &
   & PCEI, TURBN, PCEI_MIN, PDXX,O2D, HTURBLEN_CL, PDYY, KRR,  &
   & ZWORK2D, PCEI_MAX, ZATHETA)
 END IF

@@ -3,7 +3,7 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-  SUBROUTINE DELT (PLM, PWORK2, D, PWORK1, O2D, PZZ, PDYY, ZALPHA, PDIRCOSZW,  &
+  SUBROUTINE DELT (PLM, PWORK2, D, PWORK1, O2D, PZZ, PDYY, PDIRCOSZW,  &
   & PD, GOCEAN, TURBN, PDXX, ODZ)
     !     ####################
     !!
@@ -40,7 +40,7 @@
     LOGICAL, INTENT(IN) :: O2D
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: ZALPHA
+    REAL :: ZALPHA
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
     REAL, INTENT(INOUT) :: PD
     LOGICAL, INTENT(INOUT) :: GOCEAN
