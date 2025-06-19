@@ -4,7 +4,7 @@
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
   SUBROUTINE DELT (PLM, PWORK2, D, PWORK1, O2D, PZZ, PDYY, PDIRCOSZW,  &
-  & PD, GOCEAN, TURBN, PDXX, ODZ)
+  & GOCEAN, TURBN, PDXX, ODZ)
     !     ####################
     !!
     !!****  *DELT* routine to compute mixing length for DELT case
@@ -42,7 +42,7 @@
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
     REAL :: ZALPHA
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
-    REAL, INTENT(INOUT) :: PD
+    REAL :: ZD
     LOGICAL, INTENT(INOUT) :: GOCEAN
     TYPE(TURB_t), INTENT(IN) :: TURBN
     REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
@@ -144,18 +144,18 @@
       DO JIJ=IIJB,IIJE
         IF (GOCEAN) THEN
           DO JK=IKTE,IKTB,-1
-            PD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
-            IF (PLM(JIJ, JK) > PD) THEN
-              PLM(JIJ, JK) = PD
+            ZD = ZALPHA*(PZZ(JIJ, IKTE + 1) - PZZ(JIJ, JK))
+            IF (PLM(JIJ, JK) > ZD) THEN
+              PLM(JIJ, JK) = ZD
             ELSE
               EXIT
             END IF
           END DO
         ELSE
           DO JK=IKTB,IKTE
-            PD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
-            IF (PLM(JIJ, JK) > PD) THEN
-              PLM(JIJ, JK) = PD
+            ZD = ZALPHA*(0.5*(PZZ(JIJ, JK) + PZZ(JIJ, JK + IKL)) - PZZ(JIJ, IKB))*PDIRCOSZW(JIJ)
+            IF (PLM(JIJ, JK) > ZD) THEN
+              PLM(JIJ, JK) = ZD
             ELSE
               EXIT
             END IF

@@ -3,7 +3,7 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, PLM, PZZ, PSHEAR, KRRI, PD, &
+  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, PLM, PZZ, PSHEAR, KRRI, &
   & CST, CSTURB, PCOEF_AMPL, PTHVREF, OOCEAN, PTHLT, PWORK2, GOCEAN, PTHLM, PRM, &
   & LOCPEXNM, OCOMPUTE_SRC, PSRCT, PCOEF_AMPL_SAT, PAMOIST, PDIRCOSZW, PWORK1, &
   & PCEI, TURBN, PCEI_MIN, PDXX, O2D, HTURBLEN_CL, PDYY, KRR, PWORK2D, PCEI_MAX, &
@@ -80,7 +80,6 @@
     REAL, INTENT(INOUT) :: PLM(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
     INTEGER, INTENT(IN) :: KRRI
-    REAL, INTENT(INOUT) :: PD
     TYPE(CST_t), INTENT(IN) :: CST
     TYPE(CSTURB_t), INTENT(IN) :: CSTURB
     REAL, INTENT(INOUT) :: PCOEF_AMPL(D%NIJT, D%NKT)
@@ -203,7 +202,7 @@
         !           -------------------
       CASE ('DELT')
         CALL DELT(PLM_CLOUD, PWORK2, D, PWORK1, O2D, PZZ, PDYY, &
-        & PDIRCOSZW, PD, GOCEAN, TURBN, PDXX, ODZ=.TRUE.)
+        & PDIRCOSZW, GOCEAN, TURBN, PDXX, ODZ=.TRUE.)
         !
         !*         3.3 Deardorff mixing length
         !           -----------------------

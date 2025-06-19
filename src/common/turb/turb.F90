@@ -494,7 +494,6 @@ REAL, DIMENSION(D%NIJT,D%NKT,KSV) :: ZRSVS
 REAL                :: ZEXPL        ! 1-TURBN%XIMPL deg of expl.
 REAL                :: ZRVORD       ! RV/RD
 REAL                :: ZEPS         ! XMV / XMD
-REAL                :: ZD           ! distance to the surface (for routine DELT)
 REAL                :: ZPENTE       ! Slope of the amplification straight line (for routine CLOUD_MODIF_LM)
 REAL                :: ZCOEF_AMPL_CEI_NUL! Ordonnate at the origin of the
                                          ! amplification straight line (for routine CLOUD_MODIF_LM)
@@ -808,7 +807,7 @@ CASE ('BL89')
     CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, ZTHLM, KRR, ZRM, PTKET, ZSHEAR, ZLM, OOCEAN)
 
     CALL DELT(ZLMW, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, &
-    & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
+    & PDIRCOSZW, GOCEAN, TURBN, PDXX, &
     & ODZ=.FALSE.)
     ! The minimum mixing length is chosen between Horizontal grid mesh (not taking into account the vertical grid mesh) and RM17.
     ! For large horizontal grid meshes, this is equal to RM17
@@ -827,7 +826,7 @@ CASE ('BL89')
     !
   CASE ('DELT')
     CALL DELT(ZLM, ZWORK2, D, ZWORK1, O2D, PZZ, PDYY, &
-    & PDIRCOSZW, ZD, GOCEAN, TURBN, PDXX, &
+    & PDIRCOSZW, GOCEAN, TURBN, PDXX, &
     & ODZ=.TRUE.)
     !
     !*      3.5 Deardorff mixing length
@@ -877,7 +876,7 @@ CASE ('BL89')
   !*      3.5 Mixing length modification for cloud
   !           -----------------------
   IF (OCLOUDMODIFLM) CALL CLOUD_MODIF_LM(OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ,  &
-  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, ZD, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, OOCEAN, &
+  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, OOCEAN, &
   &  PTHLT, ZWORK2, GOCEAN, ZTHLM, ZRM, ZLOCPEXNM, OCOMPUTE_SRC,  &
   & PSRCT, PCOEF_AMPL_SAT, ZAMOIST, PDIRCOSZW, ZWORK1,  &
   & PCEI, TURBN, PCEI_MIN, PDXX,O2D, HTURBLEN_CL, PDYY, KRR,  &

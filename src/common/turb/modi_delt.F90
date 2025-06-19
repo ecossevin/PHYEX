@@ -6,7 +6,7 @@ IMPLICIT NONE
 INTERFACE
 !
   SUBROUTINE DELT (PLM, PWORK2, D, PWORK1, O2D, PZZ, PDYY, PDIRCOSZW,  &
-  & PD, GOCEAN, TURBN, PDXX, ODZ)
+  & GOCEAN, TURBN, PDXX, ODZ)
     !     ####################
     !!
     !!****  *DELT* routine to compute mixing length for DELT case
@@ -43,7 +43,6 @@ INTERFACE
     REAL, INTENT(IN) :: PZZ(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PDYY(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PDIRCOSZW(D%NIJT)
-    REAL, INTENT(INOUT) :: PD
     LOGICAL, INTENT(INOUT) :: GOCEAN
     TYPE(TURB_t), INTENT(IN) :: TURBN
     REAL, INTENT(IN) :: PDXX(D%NIJT, D%NKT)
