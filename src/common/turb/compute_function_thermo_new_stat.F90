@@ -4,7 +4,7 @@
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
 SUBROUTINE COMPUTE_FUNCTION_THERMO_NEW_STAT (D, PALP, PBETA, PGAM, PLTT, PC, PT, PEXN, PCP, PLOCPEXN, PAMOIST, PATHETA, &
-  & PDRVSATDT, PRVSAT, CST, PPABST)
+  & CST, PPABST)
     !     ########################################################################
     !!
     !!****  *COMPUTE_FUNCTION_THERMO* routine to compute several thermo functions
@@ -38,11 +38,11 @@ SUBROUTINE COMPUTE_FUNCTION_THERMO_NEW_STAT (D, PALP, PBETA, PGAM, PLTT, PC, PT,
     !
     REAL, INTENT(OUT), DIMENSION(D%NIJT, D%NKT) :: PLOCPEXN
     REAL, INTENT(OUT), DIMENSION(D%NIJT, D%NKT) :: PAMOIST, PATHETA
-    REAL, INTENT(INOUT) :: PDRVSATDT(D%NIJT, D%NKT)
-    REAL, INTENT(INOUT) :: PRVSAT(D%NIJT, D%NKT)
     TYPE(CST_t), INTENT(IN) :: CST
     REAL, INTENT(IN) :: PPABST(D%NIJT, D%NKT)
 
+    REAL, INTENT(INOUT) :: ZDRVSATDT(D%NIJT, D%NKT)
+    REAL, INTENT(INOUT) :: ZRVSAT(D%NIJT, D%NKT)
     REAL :: ZEPS
     REAL(KIND=JPHOOK) :: ZHOOK_HANDLE2
     INTEGER :: JK, JIJ, IIJB, IIJE, IKT
@@ -64,24 +64,24 @@ SUBROUTINE COMPUTE_FUNCTION_THERMO_NEW_STAT (D, PALP, PBETA, PGAM, PLTT, PC, PT,
     !
     !*      1.2 Saturation vapor pressure at t
     !
-    PRVSAT(IIJB:IIJE, 1:IKT) = EXP(PALP - PBETA / PT(IIJB:IIJE, 1:IKT) - PGAM*LOG(PT(IIJB:IIJE, 1:IKT)))
+    ZRVSAT(IIJB:IIJE, 1:IKT) = EXP(PALP - PBETA / PT(IIJB:IIJE, 1:IKT) - PGAM*LOG(PT(IIJB:IIJE, 1:IKT)))
     !
     !*      1.3 saturation  mixing ratio at t
     !
-    PRVSAT(IIJB:IIJE, 1:IKT) = PRVSAT(IIJB:IIJE, 1:IKT)*ZEPS / (PPABST(IIJB:IIJE, 1:IKT) - PRVSAT(IIJB:IIJE, 1:IKT))
+    ZRVSAT(IIJB:IIJE, 1:IKT) = ZRVSAT(IIJB:IIJE, 1:IKT)*ZEPS / (PPABST(IIJB:IIJE, 1:IKT) - ZRVSAT(IIJB:IIJE, 1:IKT))
     !
     !*      1.4 compute the saturation mixing ratio derivative (rvs')
     !
-    PDRVSATDT(IIJB:IIJE, 1:IKT) = (PBETA / PT(IIJB:IIJE, 1:IKT) - PGAM) / PT(IIJB:IIJE, 1:IKT)*PRVSAT(IIJB:IIJE, 1:IKT)*(1. +  &
-    & PRVSAT(IIJB:IIJE, 1:IKT) / ZEPS)
+    ZDRVSATDT(IIJB:IIJE, 1:IKT) = (PBETA / PT(IIJB:IIJE, 1:IKT) - PGAM) / PT(IIJB:IIJE, 1:IKT)*ZRVSAT(IIJB:IIJE, 1:IKT)*(1. +  &
+    & ZRVSAT(IIJB:IIJE, 1:IKT) / ZEPS)
     !
     !*      1.5 compute Amoist
     !
-    PAMOIST(IIJB:IIJE, 1:IKT) = 1.0 / (1.0 + PDRVSATDT(IIJB:IIJE, 1:IKT)*PLOCPEXN(IIJB:IIJE, 1:IKT))
+    PAMOIST(IIJB:IIJE, 1:IKT) = 1.0 / (1.0 + ZDRVSATDT(IIJB:IIJE, 1:IKT)*PLOCPEXN(IIJB:IIJE, 1:IKT))
     !
     !*      1.6 compute Atheta
     !
-    PATHETA(IIJB:IIJE, 1:IKT) = PAMOIST(IIJB:IIJE, 1:IKT)*PEXN(IIJB:IIJE, 1:IKT)*PDRVSATDT(IIJB:IIJE, 1:IKT)
+    PATHETA(IIJB:IIJE, 1:IKT) = PAMOIST(IIJB:IIJE, 1:IKT)*PEXN(IIJB:IIJE, 1:IKT)*ZDRVSATDT(IIJB:IIJE, 1:IKT)
     !
     !*      1.7 Lv/Cph/Exner at t-1
     !
