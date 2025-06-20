@@ -467,7 +467,6 @@ REAL, DIMENSION(D%NIJT,D%NKT) ::     &
           ZWORK1,ZWORK2,              &  ! working array syntax
           ZCOEF_AMPL,                 &  ! Amplification coefficient of the mixing length
                                          ! when the instability criterium is verified (routine CLOUD_MODIF_LM)
-          ZLM_CLOUD,                  &  ! Turbulent mixing length in the clouds (routine CLOUD_MODIF_LM)
           ZTEMP_BUD
 !
 !
@@ -876,7 +875,7 @@ CASE ('BL89')
   !*      3.5 Mixing length modification for cloud
   !           -----------------------
   IF (OCLOUDMODIFLM) CALL CLOUD_MODIF_LM(OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ,  &
-  & TZFIELD,   ZLM, PZZ, ZSHEAR, KRRI, CST,   CSTURB, ZCOEF_AMPL, PTHVREF, OOCEAN, &
+  & TZFIELD,   ZLM, PZZ, KRRI, CST,   CSTURB, PTHVREF, OOCEAN, &
   &  PTHLT, ZWORK2, GOCEAN, ZTHLM, ZRM, ZLOCPEXNM, OCOMPUTE_SRC,  &
   & PSRCT, PCOEF_AMPL_SAT, ZAMOIST, PDIRCOSZW, ZWORK1,  &
   & PCEI, TURBN, PCEI_MIN, PDXX,O2D, HTURBLEN_CL, PDYY, KRR,  &

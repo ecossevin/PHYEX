@@ -3,8 +3,8 @@
 !MNH_LIC version 1. See LICENSE, CeCILL-C_V1-en.txt and CeCILL-C_V1-fr.txt
 !MNH_LIC for details. version 1.
 !-----------------------------------------------------------------
-  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, PLM, PZZ, PSHEAR, KRRI, &
-  & CST, CSTURB, PCOEF_AMPL, PTHVREF, OOCEAN, PTHLT, PWORK2, GOCEAN, PTHLM, PRM, &
+  SUBROUTINE CLOUD_MODIF_LM (OCLOUDMODIFLM, D, TPFILE, PRT, PTKET, PDZZ, TZFIELD, PLM, PZZ, KRRI, &
+  & CST, CSTURB, PTHVREF, OOCEAN, PTHLT, PWORK2, GOCEAN, PTHLM, PRM, &
   & LOCPEXNM, OCOMPUTE_SRC, PSRCT, PCOEF_AMPL_SAT, PAMOIST, PDIRCOSZW, PWORK1, &
   & PCEI, TURBN, PCEI_MIN, PDXX, O2D, HTURBLEN_CL, PDYY, KRR, PWORK2D, PCEI_MAX, &
   & PATHETA)
@@ -13,11 +13,11 @@
     !!*****CLOUD_MODIF_LM routine to:
     !!       1/ change the mixing length in the clouds
     !!       2/ emphasize the mixing length in the cloud
-    !!           by the coefficient PCOEF_AMPL calculated here
+    !!           by the coefficient ZCOEF_AMPL calculated here
     !!             when the CEI index is above ZCEI_MIN.
     !!
     !!
-    !!      PCOEF_AMPL ^
+    !!      ZCOEF_AMPL ^
     !!                 |
     !!                 |
     !!  PCOEF_AMPL_SAT -                       ---------- Saturation
@@ -82,7 +82,6 @@
     INTEGER, INTENT(IN) :: KRRI
     TYPE(CST_t), INTENT(IN) :: CST
     TYPE(CSTURB_t), INTENT(IN) :: CSTURB
-    REAL, INTENT(INOUT) :: PCOEF_AMPL(D%NIJT, D%NKT)
     REAL, INTENT(IN) :: PTHVREF(D%NIJT, D%NKT)
     LOGICAL, INTENT(IN) :: OOCEAN
     REAL, INTENT(INOUT) :: PTHLT(D%NIJT, D%NKT)
@@ -109,11 +108,12 @@
     REAL, INTENT(IN) :: PCEI_MAX
     REAL, INTENT(INOUT) :: PATHETA(D%NIJT, D%NKT)
 
+    REAL :: ZCOEF_AMPL(D%NIJT, D%NKT)
     REAL(KIND=JPHOOK) :: ZHOOK_HANDLE2
-    REAL :: PSHEAR(D%NIJT, D%NKT)
+    REAL :: ZSHEAR(D%NIJT, D%NKT)
     REAL :: PCOEF_AMPL_CEI_NUL
     REAL :: ZPENTE
-    REAL :: PLM_CLOUD(D%NIJT, D%NKT)
+    REAL :: PLM_CLOUD(D%NIJT, D%NKT) ! Turbulent mixing length in the clouds
     INTEGER :: IKB
     INTEGER :: IIJB
     INTEGER :: IKL
@@ -147,7 +147,7 @@
     !
 !$acc kernels
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-    PCOEF_AMPL(IIJB:IIJE, 1:IKT) = 1.
+    ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = 1.
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
     !
@@ -159,18 +159,18 @@
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
     WHERE (PCEI(IIJB:IIJE, 1:IKT) >= PCEI_MAX)
-      PCOEF_AMPL(IIJB:IIJE, 1:IKT) = PCOEF_AMPL_SAT
+      ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = PCOEF_AMPL_SAT
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
     !
     ! Between the min and max limits of CEI index, linear variation of the
-    ! amplification coefficient PCOEF_AMPL as a function of CEI
+    ! amplification coefficient ZCOEF_AMPL as a function of CEI
     !
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
     WHERE (PCEI(IIJB:IIJE, 1:IKT) < PCEI_MAX .and. PCEI(IIJB:IIJE, 1:IKT) > PCEI_MIN)
-      PCOEF_AMPL(IIJB:IIJE, 1:IKT) = ZPENTE*PCEI(IIJB:IIJE, 1:IKT) + PCOEF_AMPL_CEI_NUL
+      ZCOEF_AMPL(IIJB:IIJE, 1:IKT) = ZPENTE*PCEI(IIJB:IIJE, 1:IKT) + PCOEF_AMPL_CEI_NUL
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
@@ -193,10 +193,10 @@
       CASE ('BL89', 'RM17', 'HM21')
 !$acc kernels
 !$mnh_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
-        PSHEAR(:, :) = 0.
+        ZSHEAR(:, :) = 0.
 !$mnh_end_expand_array ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
-        CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, PTHLM, KRR, PRM, PTKET, PSHEAR, PLM_CLOUD, OOCEAN)
+        CALL BL89(D, CST, CSTURB, TURBN, PZZ, PDZZ, PTHVREF, PTHLM, KRR, PRM, PTKET, ZSHEAR, PLM_CLOUD, OOCEAN)
         !
         !*         3.2 Delta mixing length
         !           -------------------
@@ -231,8 +231,8 @@
     !
 !$acc kernels
 !$mnh_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
-    WHERE (PCOEF_AMPL(IIJB:IIJE, 1:IKT) /= 1.)
-      PLM(IIJB:IIJE, 1:IKT) = PCOEF_AMPL(IIJB:IIJE, 1:IKT)*PLM_CLOUD(IIJB:IIJE, 1:IKT)
+    WHERE (ZCOEF_AMPL(IIJB:IIJE, 1:IKT) /= 1.)
+      PLM(IIJB:IIJE, 1:IKT) = ZCOEF_AMPL(IIJB:IIJE, 1:IKT)*PLM_CLOUD(IIJB:IIJE, 1:IKT)
     END WHERE
 !$mnh_end_expand_where ( JIJ=IIJB:IIJE,JK=1:IKT )
 !$acc end kernels
@@ -254,8 +254,8 @@
     IF (TURBN%LTURB_DIAG .and. TPFILE%LOPENED) THEN
       TZFIELD = TFIELDMETADATA(CMNHNAME='COEF_AMPL', CSTDNAME='', CLONGNAME='COEF_AMPL', CUNITS='1', CDIR='XY', CCOMMENT= &
       & 'X_Y_Z_COEF AMPL', NGRID=1, NTYPE=TYPEREAL, NDIMS=3, LTIMEDEP=.true.)
-!$acc update self( PCOEF_AMPL )
-      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, PCOEF_AMPL)
+!$acc update self( ZCOEF_AMPL )
+      CALL IO_FIELD_WRITE_PHY(D, TPFILE, TZFIELD, ZCOEF_AMPL)
       !
       TZFIELD = TFIELDMETADATA(CMNHNAME='LM_CLOUD', CSTDNAME='', CLONGNAME='LM_CLOUD', CUNITS='m', CDIR='XY', CCOMMENT= &
       & 'X_Y_Z_LM CLOUD', NGRID=1, NTYPE=TYPEREAL, NDIMS=3, LTIMEDEP=.true.)
